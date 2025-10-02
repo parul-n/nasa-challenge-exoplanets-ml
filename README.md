@@ -13,6 +13,15 @@ Developed for NASA Space Apps, this ML classifier preprocesses space-related dat
 - User-friendly interface for predictions
 
 ## Installation
-1. Clone the repository:
 ```bash
-git clone <your-repo-link>
+git clone https://github.com/parul-n/nasa-challenge-exoplanets-ml
+cd nasa-challenge-exoplanets-ai
+pip install -r requirements.txt
+
+
+## Dataset
+Kepler Object of Interest (KOI): https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=cumulative
+
+
+
+
