@@ -1,13 +1,6 @@
 ##This file is continued in association to the previous file- Model code.py
 ##This code is to convert the previous code into a interctive UI using Streamlit
 
-##INSTALLING THE LIBRARY
-!pip install streamlit pyngrok xgboost scikit-learn seaborn
-
-#Setting up the software in Google Colab or any other notebook
-#ps: this part might differ for different Python shells.
-!streamlit run app.py --server.port 8501 & npx localtunnel --port 8501
-
 #OPTIONAL- TO SUPPRESS WARNINGS IN COLAB FOR THE FORTHCOMING CODE
 import os
 os.environ["STREAMLIT_SUPPRESS_LOGS"] = "1"
@@ -151,4 +144,5 @@ if st.checkbox("Show Model Metrics (requires X_test & y_test)"):
         st.pyplot(fig)
     except Exception:
         st.error("X_test and y_test not defined. Upload training CSV and split dataset first.")
+
 
