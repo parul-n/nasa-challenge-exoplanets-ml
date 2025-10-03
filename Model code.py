@@ -1,0 +1,247 @@
+##Importing libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+##DATA ACQUISITION
+#Using data from KOI from a file named kepler.csv
+df = pd.read_csv("kepler_data.csv", comment="#")
+print(df.columns.tolist())
+print(df.head())
+
+#Defining columns
+cols = ["koi_pdisposition", "koi_period", "koi_duration", "koi_depth",
+        "koi_ror", "koi_teq", "koi_insol", "koi_steff",
+        "koi_srad", "koi_model_snr"]
+
+df = df[cols]
+print(df.head())
+
+
+
+##DATA PREPROCESSING AND EXPLORATION
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+## 1. Load dataset to skip meta data lines
+df = pd.read_csv("kepler_data.csv", comment="#")
+
+# Keep only the important columns
+cols = ["koi_pdisposition", "koi_period", "koi_duration", "koi_depth",
+        "koi_ror", "koi_teq", "koi_insol", "koi_steff",
+        "koi_srad", "koi_model_snr"]
+df = df[cols]
+
+print("Initial shape:", df.shape)
+print(df.head())
+
+
+## 2. Handle missing values
+print("\nMissing values per column:\n", df.isnull().sum())
+
+# Drop rows with missing target label
+df = df.dropna(subset=["koi_pdisposition"])
+
+# Fill numeric NaN with median
+for col in df.columns:
+    if df[col].dtype != "object":
+        df[col] = df[col].fillna(df[col].median())
+
+
+
+## 3. Encode target labels
+label_map = {"CONFIRMED": 1, "CANDIDATE": 0, "FALSE POSITIVE": -1}
+df["koi_pdisposition"] = df["koi_pdisposition"].map(label_map)
+
+print("\nLabel counts:\n", df["koi_pdisposition"].value_counts())
+
+
+## 4. Feature scaling
+X = df.drop("koi_pdisposition", axis=1)
+y = df["koi_pdisposition"]
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X = pd.DataFrame(X_scaled, columns=X.columns)
+print("\nScaled feature sample:\n", X.head())
+
+
+
+# 5. Train-test split (70-30)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+print("\nTrain set size:", X_train.shape)
+print("Test set size:", X_test.shape)
+
+
+
+##MODEL TRAINING USING VARIOUS METHODS:
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+## 1. Balanced Logistic Regression
+log_model = LogisticRegression(class_weight="balanced", max_iter=1000, random_state=42)
+log_model.fit(X_train, y_train)
+y_pred_log = log_model.predict(X_test)
+
+print("===== Logistic Regression (Balanced) =====")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_log))
+print("\nClassification Report:\n", classification_report(y_test, y_pred_log))
+print("Accuracy:", accuracy_score(y_test, y_pred_log), "\n")
+
+## 2. Random Forest Classifier
+rf_model = RandomForestClassifier(
+    n_estimators=200,
+    max_depth=10,
+    class_weight="balanced",
+    random_state=42
+)
+rf_model.fit(X_train, y_train)
+y_pred_rf = rf_model.predict(X_test)
+
+print("===== Random Forest Classifier =====")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_rf))
+print("\nClassification Report:\n", classification_report(y_test, y_pred_rf))
+print("Accuracy:", accuracy_score(y_test, y_pred_rf))
+
+
+
+##ML USING XGBOOST (FINAL MODEL USED IN THE PROJECT)
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Define XGBoost model
+xgb_model = XGBClassifier(
+    n_estimators=300,
+    learning_rate=0.05,
+    max_depth=6,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    random_state=42,
+    use_label_encoder=False,
+    eval_metric="logloss"
+)
+
+# Fix labels for XGBoost: map -1 to 0, 0 to 1
+y_train_xgb = y_train.map({-1: 0, 0: 1})
+y_test_xgb = y_test.map({-1: 0, 0: 1})
+
+# Train and evaluate
+xgb_model.fit(X_train, y_train_xgb)
+y_pred_xgb = xgb_model.predict(X_test)
+
+print("XGBoost Accuracy:", accuracy_score(y_test_xgb, y_pred_xgb))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test_xgb, y_pred_xgb))
+print("\nClassification Report:\n", classification_report(y_test_xgb, y_pred_xgb))
+
+##Using hyperparameter tuning by Grid Search
+from xgboost import XGBClassifier
+from sklearn.model_selection import GridSearchCV
+import numpy as np
+
+# Fix labels: map -1 to 0, 0 to 1
+y_train_fixed = np.where(y_train == -1, 0, 1)
+y_test_fixed  = np.where(y_test == -1, 0, 1)
+
+# Define model
+xgb_model = XGBClassifier(
+    random_state=42,
+    use_label_encoder=False,
+    eval_metric="logloss"
+)
+
+# Define parameter grid
+param_grid = {
+    "n_estimators": [100, 200, 300],
+    "max_depth": [3, 5, 7],
+    "learning_rate": [0.01, 0.05, 0.1],
+    "subsample": [0.8, 1.0],
+    "colsample_bytree": [0.8, 1.0]
+}
+
+# Setup GridSearchCV
+grid = GridSearchCV(
+    estimator=xgb_model,
+    param_grid=param_grid,
+    scoring="accuracy",
+    cv=3,
+    verbose=1,
+    n_jobs=-1
+)
+
+# Run grid search
+grid.fit(X_train, y_train_fixed)
+
+print("Best Parameters:", grid.best_params_)
+print("Best Accuracy:", grid.best_score_)
+
+##Fixing labels(optionally, could be inculcated with the code above)
+from sklearn.model_selection import GridSearchCV
+from xgboost import XGBClassifier
+import numpy as np
+
+# Fix labels: -1 -> 0, 0 -> 1
+y_train_fixed = np.where(y_train == -1, 0, 1)
+y_test_fixed  = np.where(y_test == -1, 0, 1)
+
+# Base model
+xgb = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+
+# Simplified parameter grid (fewer combinations than total to avoid high runtime)
+param_grid = {
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.05, 0.1],
+    'n_estimators': [100, 300],
+    'subsample': [0.8, 1.0],
+    'colsample_bytree': [0.8, 1.0]
+}
+
+# Grid Search
+grid = GridSearchCV(
+    estimator=xgb,
+    param_grid=param_grid,
+    scoring='accuracy',
+    cv=3,
+    verbose=2,
+    n_jobs=-1
+)
+
+# Fit using fixed labels
+grid.fit(X_train, y_train_fixed)
+
+print("Best Parameters:", grid.best_params_)
+print("Best CV Accuracy:", grid.best_score_)
+
+
+
+##CLASSIFICATION REPORT
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Use best model from grid search
+best_xgb = grid.best_estimator_
+
+# Predict on test set
+y_pred_test = best_xgb.predict(X_test)
+
+# Evaluate
+print("Test Accuracy:", accuracy_score(y_test_fixed, y_pred_test))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test_fixed, y_pred_test))
+print("\nClassification Report:\n", classification_report(y_test_fixed, y_pred_test))
+
+
+##SAVE AND DOWNLOAD THE MODEL TO USE IN STREAMLIT
+import joblib
+joblib.dump(grid.best_estimator_, "final_model.pkl")
+
+from google.colab import files
+files.download("final_model.pkl")
+
+
+
