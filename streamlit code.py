@@ -126,23 +126,50 @@ if uploaded_file:
 
 # Model Metrics (optional)
 st.subheader("Model Metrics")
-if st.checkbox("Show Model Metrics (requires X_test & y_test)"):
-    try:
-        X_test  # must be defined from your uploaded training split
-        y_test
+
+if st.checkbox("Show Model Metrics (uses internal test sample)"):
+    import os
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.metrics import classification_report, confusion_matrix
+
+    # Path to internal test CSV
+    TEST_CSV = "kepler_test_sample.csv"
+
+    if os.path.exists(TEST_CSV):
+        test_data = pd.read_csv(TEST_CSV)
+        
+        # Select only the features your model expects
+        feature_cols = ["koi_period","koi_duration","koi_depth","koi_ror",
+                        "koi_teq","koi_insol","koi_steff","koi_srad","koi_model_snr"]
+        X_test = test_data[feature_cols]
+        y_test = test_data["koi_pdisposition"]
+        
+        # Scale features (if your model expects scaled input)
+        scaler = StandardScaler()
+        X_test_scaled = scaler.fit_transform(X_test)
+        X_test = pd.DataFrame(X_test_scaled, columns=X_test.columns)
+        
+        # Load the pre-trained model
         clf = get_model()
+        
+        # Make predictions
         y_pred = clf.predict(X_test)
-
-        from sklearn.metrics import classification_report, confusion_matrix
-        import matplotlib.pyplot as plt
-        import seaborn as sns
-
+        
+        # Show metrics
+        st.text("Classification Report")
         st.text(classification_report(y_test, y_pred))
+        
+        st.text("Confusion Matrix")
         cm = confusion_matrix(y_test, y_pred)
         fig, ax = plt.subplots()
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
         st.pyplot(fig)
-    except Exception:
-        st.error("X_test and y_test not defined. Upload training CSV and split dataset first.")
+    else:
+        st.error("Internal test CSV not found!")
+
 
 
