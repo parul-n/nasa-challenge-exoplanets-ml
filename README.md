@@ -15,14 +15,14 @@ Developed for NASA Space Apps, this ML classifier preprocesses space-related dat
 Kepler Object of Interest (KOI): https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=cumulative
 
 ## **Technologies Used**
-Python 3.x
-scikit-learn
-XGBoost
-Logistic Regression
-Grid Search
-pandas, numpy
-joblib
-Streamlit
+Python 3.x,
+scikit-learn,
+XGBoost,
+Logistic Regression,
+Grid Search,
+pandas, numpy,
+joblib,
+Streamlit,
 
 ## **By:**
 Parul Nagarwal
