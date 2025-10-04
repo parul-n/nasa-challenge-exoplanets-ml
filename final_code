@@ -1,3 +1,13 @@
+### WHAT I USED FOR GOOGLE COLAB- SKIP IF NOT USING GOOGLE COLAB
+from google.colab import drive
+drive.mount('/content/drive')
+
+import os
+os.chdir("/content/drive/MyDrive/Colab Notebooks")  #put the address where your file lies in Google Drive
+!pwd
+
+#-----------------------------------------------------------------------------------------------------------
+
 ##Importing libraries
 import pandas as pd
 import numpy as np
@@ -239,10 +249,7 @@ print("\nClassification Report:\n", classification_report(y_test_fixed, y_pred_t
 ##SAVE AND DOWNLOAD THE MODEL TO USE IN STREAMLIT
 import joblib
 joblib.dump(grid.best_estimator_, "final_model.pkl")
-
-from google.colab import files
-files.download("final_model.pkl")
-
+joblib.dump(scaler, "scaler.pkl")
 
 
 
