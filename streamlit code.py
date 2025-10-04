@@ -10,7 +10,7 @@ import os
 import gdown
 
 st.set_page_config(page_title="NASA Exoplanet Classifier", layout="wide")
-st.title("🌌 NASA Exoplanet Classifier 🚀🪐")
+st.title("🌌 Exoplanet Classifier 🚀🪐")
 st.markdown("""
 Predict whether a candidate is a **Confirmed Planet** or **False Positive**.  
 Enter the feature values below, choose a model manually or let the app auto-select the most confident prediction. Please review borderline entries.
@@ -142,3 +142,4 @@ if submit_single:
         ax2.legend()
         ax2.grid(True)
         st.pyplot(fig2)
+
