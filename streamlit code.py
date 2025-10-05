@@ -140,10 +140,9 @@ else:  # Test Cases Mode
         pred_labels = label_encoder.inverse_transform(preds)
 
         sample_data["Predicted Class"] = pred_labels
-        sample_data["Confidence"] = model.predict_proba(X_sample_scaled)[:, 1].round(2)
 
         st.subheader("🪐 Prediction Results")
-        st.dataframe(sample_data.style.background_gradient(subset=["Confidence"], cmap="Blues").format(precision=2))
+        st.dataframe(sample_data.style.format(precision=2))  # removed Confidence column
 
 
 
@@ -230,6 +229,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
