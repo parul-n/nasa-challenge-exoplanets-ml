@@ -131,13 +131,28 @@ st.header("📈 Model Metrics & Model Insights")
 
 if st.checkbox("Show Model Metrics (using real test data)"):
     
-    # 1. Load model, scaler, label encoder, and test data
+    # i. Load model, scaler, label encoder, and test data
     scaler = joblib.load("scaler.pkl")
     model = joblib.load("rf_model.pkl")  # or xgb_model.pkl
     le = joblib.load("label_encoder.pkl")
     X_test, y_test = joblib.load("test_data.pkl")
     X_test_scaled = scaler.transform(X_test)
     y_pred = model.predict(X_test_scaled)
+
+    # ii. Feature name mapping
+    feature_name_map = {
+        "koi_period": "Orbital Period (days)",
+        "koi_duration": "Transit Duration (hrs)",
+        "koi_depth": "Transit Depth (ppm)",
+        "koi_ror": "Planet-Star Radius Ratio",
+        "koi_teq": "Equilibrium Temperature (K)",
+        "koi_insol": "Insolation Flux",
+        "koi_steff": "Stellar Effective Temperature (K)",
+        "koi_srad": "Stellar Radius (Solar Radii)",
+        "koi_model_snr": "Model SNR"
+    }
+    features = list(feature_name_map.keys())
+    readable_features = [feature_name_map[f] for f in features]
 
     #Class Distribution
     with st.expander("Class Distribution"):
@@ -148,7 +163,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
         st.dataframe(pd.DataFrame(report).transpose())
 
-    # Confusion Matrix
+    #Confusion Matrix
     with st.expander("Confusion Matrix"):
         cm = confusion_matrix(y_test, y_pred)
         fig, ax = plt.subplots()
@@ -175,14 +190,16 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         else:
             st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
-    #Feature Importance and SHAP
-    with st.expander("Feature Importance & SHAP Explanations"):
+    #Feature Importance & SHAP
+    with st.expander("Feature Importance & SHAP Explanations and Visual Representation"):
         
+        # Feature Importance
         st.subheader("Feature Importance")
-        features = ["koi_period","koi_duration","koi_depth","koi_ror",
-                    "koi_teq","koi_insol","koi_steff","koi_srad","koi_model_snr"]
         importances = model.feature_importances_
-        importance_df = pd.DataFrame({'Feature': features, 'Importance': importances}).sort_values(by='Importance', ascending=False)
+        importance_df = pd.DataFrame({
+            'Feature': readable_features,
+            'Importance': importances
+        }).sort_values(by='Importance', ascending=False)
         st.dataframe(importance_df)
 
         fig3, ax3 = plt.subplots(figsize=(7,5))
@@ -190,23 +207,32 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         ax3.set_title("Feature Importance")
         st.pyplot(fig3, clear_figure=True)
 
+        # SHAP Summary Plot (Global)
         st.subheader("SHAP Summary Plot (Global Feature Impact)")
         import shap
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_test_scaled)
 
-        fig4 = shap.summary_plot(shap_values, X_test_scaled, feature_names=features, show=False)
+        fig4 = shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features, show=False)
         st.pyplot(fig4, clear_figure=True)
 
+        # SHAP Force Plot (First Sample)
         st.subheader("SHAP Force Plot for First Test Sample")
         st.markdown("Shows how each feature contributed to the model's prediction for the first test entry.")
-        force_plot = shap.force_plot(explainer.expected_value, shap_values[0], X_test_scaled[0], feature_names=features, matplotlib=True)
+        force_plot = shap.force_plot(
+            explainer.expected_value, 
+            shap_values[0], 
+            X_test_scaled[0], 
+            feature_names=readable_features, 
+            matplotlib=True
+        )
         st.pyplot(force_plot, clear_figure=True)
 
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
