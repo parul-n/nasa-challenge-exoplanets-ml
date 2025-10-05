@@ -190,7 +190,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         else:
             st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
-    # --- SHAP Plots
+   #SHAP Plots
 with st.expander("Feature Importance & SHAP Explanations"):
 
     # Feature Importance Bar Chart
@@ -207,11 +207,35 @@ with st.expander("Feature Importance & SHAP Explanations"):
     ax3.set_title("Feature Importance")
     st.pyplot(fig3, clear_figure=True)
 
+    # SHAP Global Summary Plot
+    st.subheader("SHAP Summary Plot (Global Feature Impact)")
+    import shap
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_test_scaled)
+
+    shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features, plot_type="bar", show=False, matplotlib=True)
+    fig4 = plt.gcf()
+    st.pyplot(fig4, clear_figure=True)
+
+    # SHAP Force Plot for first test sample
+    st.subheader("SHAP Force Plot for First Test Sample")
+    st.markdown("Shows how each feature contributed to the model's prediction for the first test entry.")
+
+    force_plot = shap.force_plot(
+        explainer.expected_value,
+        shap_values[0],
+        X_test_scaled[0],
+        feature_names=readable_features,
+        matplotlib=True
+    )
+    st.pyplot(force_plot, clear_figure=True)
+
 
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
