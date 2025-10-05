@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 ##PAGE SETUP
 st.set_page_config(page_title="Exoplanet Classifier 🚀🪐", layout="wide")
 
-st.title("🌍 NASA Space Apps Challenge 2025 – Exoplanet ML Classifier 🚀")
+st.title("Exoplanet ML Classifier 🚀")
 st.markdown("This ML app predicts whether a celestial body is an **Exoplanet** or **Non-Exoplanet** based on NASA’s dataset.")
 st.markdown("Please be mindful of reviewing baseline entries.")
 
@@ -129,17 +129,17 @@ else:  # Test Cases Mode
 ## MODEL METRICS (INTERNAL TEST DATA)
 st.header("📈 Model Metrics")
 
-if st.checkbox("Show Model Metrics (on internal test sample)"):
-    # Example test data (you can replace this with your real X_test, y_test samples)
-    X_test = np.random.rand(10, 9)
-    y_test = np.random.randint(0, 2, 10)
-
+if st.checkbox("Show Model Metrics (using real test data)"):
+    # Real test data 
+    X_test, y_test = joblib.load("test_data.pkl")
     y_pred = model.predict(X_test)
 
+    #Classification Report
     report = classification_report(y_test, y_pred, output_dict=True)
     st.subheader("Classification Report")
     st.dataframe(pd.DataFrame(report).transpose())
 
+    #Condusion Matrix
     st.subheader("Confusion Matrix")
     cm = confusion_matrix(y_test, y_pred)
     fig, ax = plt.subplots()
@@ -148,8 +148,28 @@ if st.checkbox("Show Model Metrics (on internal test sample)"):
     ax.set_ylabel("Actual")
     st.pyplot(fig)
 
+    # ROC-AUC Curve
+    st.subheader("ROC-AUC Curve")
+    
+    # Compute probabilities and ROC values
+    y_proba = model.predict_proba(X_test)[:, 1]
+    fpr, tpr, _ = roc_curve(y_test, y_proba)
+    roc_auc = roc_auc_score(y_test, y_proba)
+
+    # Plot ROC curve
+    fig2, ax2 = plt.subplots()
+    ax2.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}")
+    ax2.plot([0, 1], [0, 1], 'k--', label="Random Classifier")
+    ax2.set_xlabel("False Positive Rate")
+    ax2.set_ylabel("True Positive Rate")
+    ax2.set_title("Receiver Operating Characteristic (ROC) Curve")
+    ax2.legend(loc="lower right")
+    st.pyplot(fig2)
+
+
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
