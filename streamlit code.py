@@ -210,9 +210,8 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         else:
             st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
-    with st.expander("Feature Importance & SHAP Explanations"):
+    with st.expander("Feature Importance"):
 
-        st.subheader("Feature Importance")
         importances = model.feature_importances_
         importance_df = pd.DataFrame({
             'Feature': readable_features,
@@ -229,6 +228,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
