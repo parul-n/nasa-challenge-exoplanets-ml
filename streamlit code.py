@@ -126,65 +126,89 @@ else:  # Test Cases Mode
 
 
 
-## MODEL METRICS (INTERNAL TEST DATA)
-## MODEL METRICS (INTERNAL TEST DATA)
-st.header("📈 Model Metrics")
+## MODEL METRICS & MODEL INSIGHTS (INTERNAL TEST DATA)
+st.header("📈 Model Metrics & Model Insights")
 
 if st.checkbox("Show Model Metrics (using real test data)"):
-    # 1. Load model, scaler, and label encoder
+    
+    # 1. Load model, scaler, label encoder, and test data
     scaler = joblib.load("scaler.pkl")
     model = joblib.load("rf_model.pkl")  # or xgb_model.pkl
     le = joblib.load("label_encoder.pkl")
-
-    # 2. Load test data
     X_test, y_test = joblib.load("test_data.pkl")
-    
-    # 3. Scale test features
     X_test_scaled = scaler.transform(X_test)
-
-    # 4. Make predictions
     y_pred = model.predict(X_test_scaled)
 
-    # Show class distribution
-    st.subheader("Class Distribution in Test Set")
-    st.write(pd.Series(y_test).value_counts())
+    #Class Distribution
+    with st.expander("Class Distribution"):
+        st.write(pd.Series(y_test).value_counts())
 
-    # Classification Report
-    st.subheader("Classification Report")
-    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
-    st.dataframe(pd.DataFrame(report).transpose())
+    #Classification Report
+    with st.expander("Classification Report"):
+        report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+        st.dataframe(pd.DataFrame(report).transpose())
 
     # Confusion Matrix
-    st.subheader("Confusion Matrix")
-    cm = confusion_matrix(y_test, y_pred)
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
-    ax.set_xlabel("Predicted")
-    ax.set_ylabel("Actual")
-    st.pyplot(fig, clear_figure=True)
+    with st.expander("Confusion Matrix"):
+        cm = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+        st.pyplot(fig, clear_figure=True)
 
-    # ROC-AUC Curve (only if model supports probabilities and has more than 1 class)
-    st.subheader("ROC-AUC Curve")
-    if hasattr(model, "predict_proba") and len(np.unique(y_test)) > 1:
-        y_proba = model.predict_proba(X_test_scaled)[:, 1]
-        fpr, tpr, _ = roc_curve(y_test, y_proba)
-        roc_auc = roc_auc_score(y_test, y_proba)
+    #ROC-AUC Curve
+    with st.expander("ROC-AUC Curve"):
+        if hasattr(model, "predict_proba") and len(np.unique(y_test)) > 1:
+            y_proba = model.predict_proba(X_test_scaled)[:, 1]
+            fpr, tpr, _ = roc_curve(y_test, y_proba)
+            roc_auc = roc_auc_score(y_test, y_proba)
 
-        fig2, ax2 = plt.subplots()
-        ax2.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}")
-        ax2.plot([0, 1], [0, 1], 'k--', label="Random Classifier")
-        ax2.set_xlabel("False Positive Rate")
-        ax2.set_ylabel("True Positive Rate")
-        ax2.set_title("Receiver Operating Characteristic (ROC) Curve")
-        ax2.legend(loc="lower right")
-        st.pyplot(fig2, clear_figure=True)
-    else:
-        st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
+            fig2, ax2 = plt.subplots()
+            ax2.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}")
+            ax2.plot([0, 1], [0, 1], 'k--', label="Random Classifier")
+            ax2.set_xlabel("False Positive Rate")
+            ax2.set_ylabel("True Positive Rate")
+            ax2.set_title("Receiver Operating Characteristic (ROC) Curve")
+            ax2.legend(loc="lower right")
+            st.pyplot(fig2, clear_figure=True)
+        else:
+            st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
+
+    #Feature Importance and SHAP
+    with st.expander("Feature Importance & SHAP Explanations"):
+        
+        st.subheader("Feature Importance")
+        features = ["koi_period","koi_duration","koi_depth","koi_ror",
+                    "koi_teq","koi_insol","koi_steff","koi_srad","koi_model_snr"]
+        importances = model.feature_importances_
+        importance_df = pd.DataFrame({'Feature': features, 'Importance': importances}).sort_values(by='Importance', ascending=False)
+        st.dataframe(importance_df)
+
+        fig3, ax3 = plt.subplots(figsize=(7,5))
+        sns.barplot(x='Importance', y='Feature', data=importance_df, ax=ax3, palette="viridis")
+        ax3.set_title("Feature Importance")
+        st.pyplot(fig3, clear_figure=True)
+
+        st.subheader("SHAP Summary Plot (Global Feature Impact)")
+        import shap
+        shap.initjs()
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_test_scaled)
+
+        fig4 = shap.summary_plot(shap_values, X_test_scaled, feature_names=features, show=False)
+        st.pyplot(fig4, clear_figure=True)
+
+        st.subheader("SHAP Force Plot for First Test Sample")
+        st.markdown("Shows how each feature contributed to the model's prediction for the first test entry.")
+        force_plot = shap.force_plot(explainer.expected_value, shap_values[0], X_test_scaled[0], feature_names=features, matplotlib=True)
+        st.pyplot(force_plot, clear_figure=True)
 
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
