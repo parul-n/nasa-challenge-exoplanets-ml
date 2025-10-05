@@ -208,7 +208,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         st.pyplot(fig3, clear_figure=True)
 
         # SHAP Global Summary Plot
-        st.subheader("SHAP Summary Plot (Global Feature Impact)")
+        
         import shap
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_test_scaled)
@@ -235,6 +235,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
