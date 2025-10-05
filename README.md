@@ -1,9 +1,9 @@
 
 # ML Exoplanet Classifier
 # Nasa Space Apps Challenge 2025
-Developed for NASA Space Apps, this ML classifier preprocesses space-related data, trained via XGBoost. tunes hyperparameters via Grid Search, and achieves ~84% accuracy. It includes label optimization, confusion matrix analysis, and classification reports for a reliable, interpretable, deployable solution for astronomers for identification of exoplanets using AI.
+Developed for NASA Space Apps, this ML classifier preprocesses space-related data, trained via XGBoost. tunes hyperparameters via Grid Search, and achieves ~83% accuracy and 92% discriination factor (ROC-AUC). It includes label optimization, confusion matrix analysis, and classification reports, Feature Importance, ROC-AUC Curve for a reliable, interpretable, deployable solution for astronomers for identification of exoplanets using AI.
 
-I have tried to experiment with different Machine Learning algorithms like Logistic Regression, Random Forest, and XGBoost. Each gave varying results but the disparities in the evaluation were not huge. Ultimately, I preferred XGBoost which was best suited for our final model, and deployed it in our final software.
+I have tried to experiment with different Machine Learning algorithms like, Random Forest, and XGBoost. Each gave varying results but the disparities in the evaluation were not huge. Ultimately, I preferred XGBoost which was best suited for our final model, and deployed it in our final software.
 
 The ML techniques, algorithms, and approaches for this project align with the following papers:
 1. MNRAS: Exoplanet detection using machine learning- https://academic.oup.com/mnras/article/513/4/5505/6472249
