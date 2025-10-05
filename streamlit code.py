@@ -127,21 +127,23 @@ else:  # Test Cases Mode
 
 
 ## MODEL METRICS (INTERNAL TEST DATA)
+## MODEL METRICS (INTERNAL TEST DATA)
 st.header("📈 Model Metrics")
 
 if st.checkbox("Show Model Metrics (using real test data)"):
-    # Load test data
-    data = joblib.load("test_data.pkl")
-    
-    # Check type and unpack
-    if isinstance(data, tuple) and len(data) == 2:
-        X_test, y_test = data
-    else:
-        st.error("Test data format not recognized. Expected a tuple (X_test, y_test).")
-        st.stop()
+    # 1. Load model, scaler, and label encoder
+    scaler = joblib.load("scaler.pkl")
+    model = joblib.load("rf_model.pkl")  # or xgb_model.pkl
+    le = joblib.load("label_encoder.pkl")
 
-    # Predictions
-    y_pred = model.predict(X_test)
+    # 2. Load test data
+    X_test, y_test = joblib.load("test_data.pkl")
+    
+    # 3. Scale test features
+    X_test_scaled = scaler.transform(X_test)
+
+    # 4. Make predictions
+    y_pred = model.predict(X_test_scaled)
 
     # Show class distribution
     st.subheader("Class Distribution in Test Set")
@@ -164,7 +166,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
     # ROC-AUC Curve (only if model supports probabilities and has more than 1 class)
     st.subheader("ROC-AUC Curve")
     if hasattr(model, "predict_proba") and len(np.unique(y_test)) > 1:
-        y_proba = model.predict_proba(X_test)[:, 1]
+        y_proba = model.predict_proba(X_test_scaled)[:, 1]
         fpr, tpr, _ = roc_curve(y_test, y_proba)
         roc_auc = roc_auc_score(y_test, y_proba)
 
@@ -180,10 +182,10 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
 
-
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
