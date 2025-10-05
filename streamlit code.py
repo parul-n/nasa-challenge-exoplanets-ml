@@ -205,41 +205,11 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         ax3.set_title("Feature Importance")
         st.pyplot(fig3, clear_figure=True)
 
-        # --- SHAP Summary ---
-        st.subheader("SHAP Summary Plot (Global Feature Impact)")
-        import shap
-
-        sample_size = 200  # Reduce this number for faster performance
-        X_sample = X_test_scaled[:sample_size]
-
-        @st.cache_resource
-        def compute_shap_values(model, X):
-            explainer = shap.TreeExplainer(model)
-            return explainer.shap_values(X)
-
-        shap_values = compute_shap_values(model, X_sample)
-
-        if isinstance(shap_values, list):
-            shap_values_to_use = shap_values[1]
-        else:
-            shap_values_to_use = shap_values
-
-        plt.figure(figsize=(7,5))
-        shap.summary_plot(
-            shap_values_to_use,
-            X_sample,
-            feature_names=readable_features,
-            plot_type="bar",
-            show=False,
-            matplotlib=True
-        )
-        st.pyplot(plt.gcf())
-        plt.close()
-
-
+        
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
