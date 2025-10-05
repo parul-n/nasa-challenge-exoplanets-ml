@@ -130,47 +130,61 @@ else:  # Test Cases Mode
 st.header("📈 Model Metrics")
 
 if st.checkbox("Show Model Metrics (using real test data)"):
-    # Real test data 
-    X_test, y_test = joblib.load("test_data.pkl")
+    # Load test data
+    data = joblib.load("test_data.pkl")
+    
+    # Check type and unpack
+    if isinstance(data, tuple) and len(data) == 2:
+        X_test, y_test = data
+    else:
+        st.error("Test data format not recognized. Expected a tuple (X_test, y_test).")
+        st.stop()
+
+    # Predictions
     y_pred = model.predict(X_test)
 
-    #Classification Report
-    report = classification_report(y_test, y_pred, output_dict=True)
+    # Show class distribution
+    st.subheader("Class Distribution in Test Set")
+    st.write(pd.Series(y_test).value_counts())
+
+    # Classification Report
     st.subheader("Classification Report")
+    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
     st.dataframe(pd.DataFrame(report).transpose())
 
-    #Condusion Matrix
+    # Confusion Matrix
     st.subheader("Confusion Matrix")
     cm = confusion_matrix(y_test, y_pred)
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
-    st.pyplot(fig)
+    st.pyplot(fig, clear_figure=True)
 
-    # ROC-AUC Curve
+    # ROC-AUC Curve (only if model supports probabilities and has more than 1 class)
     st.subheader("ROC-AUC Curve")
-    
-    # Compute probabilities and ROC values
-    y_proba = model.predict_proba(X_test)[:, 1]
-    fpr, tpr, _ = roc_curve(y_test, y_proba)
-    roc_auc = roc_auc_score(y_test, y_proba)
+    if hasattr(model, "predict_proba") and len(np.unique(y_test)) > 1:
+        y_proba = model.predict_proba(X_test)[:, 1]
+        fpr, tpr, _ = roc_curve(y_test, y_proba)
+        roc_auc = roc_auc_score(y_test, y_proba)
 
-    # Plot ROC curve
-    fig2, ax2 = plt.subplots()
-    ax2.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}")
-    ax2.plot([0, 1], [0, 1], 'k--', label="Random Classifier")
-    ax2.set_xlabel("False Positive Rate")
-    ax2.set_ylabel("True Positive Rate")
-    ax2.set_title("Receiver Operating Characteristic (ROC) Curve")
-    ax2.legend(loc="lower right")
-    st.pyplot(fig2)
+        fig2, ax2 = plt.subplots()
+        ax2.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}")
+        ax2.plot([0, 1], [0, 1], 'k--', label="Random Classifier")
+        ax2.set_xlabel("False Positive Rate")
+        ax2.set_ylabel("True Positive Rate")
+        ax2.set_title("Receiver Operating Characteristic (ROC) Curve")
+        ax2.legend(loc="lower right")
+        st.pyplot(fig2, clear_figure=True)
+    else:
+        st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
 
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
