@@ -126,12 +126,12 @@ else:  # Test Cases Mode
 
 
 
-## MODEL METRICS & MODEL INSIGHTS (INTERNAL TEST DATA)
+## MODEL METRICS & SHAP INSIGHTS
 st.header("📈 Model Metrics & Model Insights")
 
 if st.checkbox("Show Model Metrics (using real test data)"):
-    
-    # i. Load model, scaler, label encoder, and test data
+
+    # 2. Load model, scaler, label encoder, test data
     scaler = joblib.load("scaler.pkl")
     model = joblib.load("rf_model.pkl")  # or xgb_model.pkl
     le = joblib.load("label_encoder.pkl")
@@ -139,7 +139,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
     X_test_scaled = scaler.transform(X_test)
     y_pred = model.predict(X_test_scaled)
 
-    # ii. Feature name mapping
+    # 2. Define readable feature names
     feature_name_map = {
         "koi_period": "Orbital Period (days)",
         "koi_duration": "Transit Duration (hrs)",
@@ -154,16 +154,16 @@ if st.checkbox("Show Model Metrics (using real test data)"):
     features = list(feature_name_map.keys())
     readable_features = [feature_name_map[f] for f in features]
 
-    #Class Distribution
+    # --- Class Distribution ---
     with st.expander("Class Distribution"):
         st.write(pd.Series(y_test).value_counts())
 
-    #Classification Report
+    # --- Classification Report ---
     with st.expander("Classification Report"):
         report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
         st.dataframe(pd.DataFrame(report).transpose())
 
-    #Confusion Matrix
+    # --- Confusion Matrix ---
     with st.expander("Confusion Matrix"):
         cm = confusion_matrix(y_test, y_pred)
         fig, ax = plt.subplots()
@@ -172,7 +172,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         ax.set_ylabel("Actual")
         st.pyplot(fig, clear_figure=True)
 
-    #ROC-AUC Curve
+    # --- ROC-AUC Curve ---
     with st.expander("ROC-AUC Curve"):
         if hasattr(model, "predict_proba") and len(np.unique(y_test)) > 1:
             y_proba = model.predict_proba(X_test_scaled)[:, 1]
@@ -190,51 +190,52 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         else:
             st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
-   #SHAP Plots
-with st.expander("Feature Importance & SHAP Explanations"):
+    # --- Feature Importance & SHAP ---
+    with st.expander("Feature Importance & SHAP Explanations"):
 
-    # Feature Importance Bar Chart
-    st.subheader("Feature Importance")
-    importances = model.feature_importances_
-    importance_df = pd.DataFrame({
-        'Feature': readable_features,
-        'Importance': importances
-    }).sort_values(by='Importance', ascending=False)
-    st.dataframe(importance_df)
+        # Feature Importance Bar Chart
+        st.subheader("Feature Importance")
+        importances = model.feature_importances_
+        importance_df = pd.DataFrame({
+            'Feature': readable_features,
+            'Importance': importances
+        }).sort_values(by='Importance', ascending=False)
+        st.dataframe(importance_df)
 
-    fig3, ax3 = plt.subplots(figsize=(7,5))
-    sns.barplot(x='Importance', y='Feature', data=importance_df, ax=ax3, palette="viridis")
-    ax3.set_title("Feature Importance")
-    st.pyplot(fig3, clear_figure=True)
+        fig3, ax3 = plt.subplots(figsize=(7,5))
+        sns.barplot(x='Importance', y='Feature', data=importance_df, ax=ax3, palette="viridis")
+        ax3.set_title("Feature Importance")
+        st.pyplot(fig3, clear_figure=True)
 
-    # SHAP Global Summary Plot
-    st.subheader("SHAP Summary Plot (Global Feature Impact)")
-    import shap
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_test_scaled)
+        # SHAP Global Summary Plot
+        st.subheader("SHAP Summary Plot (Global Feature Impact)")
+        import shap
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_test_scaled)
 
-    shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features, plot_type="bar", show=False, matplotlib=True)
-    fig4 = plt.gcf()
-    st.pyplot(fig4, clear_figure=True)
+        shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features,
+                          plot_type="bar", show=False, matplotlib=True)
+        fig4 = plt.gcf()
+        st.pyplot(fig4, clear_figure=True)
 
-    # SHAP Force Plot for first test sample
-    st.subheader("SHAP Force Plot for First Test Sample")
-    st.markdown("Shows how each feature contributed to the model's prediction for the first test entry.")
+        # SHAP Force Plot for first test sample
+        st.subheader("SHAP Force Plot for First Test Sample")
+        st.markdown("Shows how each feature contributed to the model's prediction for the first test entry.")
 
-    force_plot = shap.force_plot(
-        explainer.expected_value,
-        shap_values[0],
-        X_test_scaled[0],
-        feature_names=readable_features,
-        matplotlib=True
-    )
-    st.pyplot(force_plot, clear_figure=True)
-
+        force_plot = shap.force_plot(
+            explainer.expected_value,
+            shap_values[0],
+            X_test_scaled[0],
+            feature_names=readable_features,
+            matplotlib=True
+        )
+        st.pyplot(force_plot, clear_figure=True)
 
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
