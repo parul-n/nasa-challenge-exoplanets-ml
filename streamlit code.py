@@ -65,6 +65,27 @@ if option == "Manual Input":
 
 elif option == "Upload CSV":
     st.subheader("Upload Your CSV File")
+    # Helpful note for CSV upload
+    st.markdown("""
+    **Note:**  
+    Please ensure your CSV file includes the **following columns with exact names** (case-sensitive):  
+
+    - `koi_period` — Orbital Period (days)  
+    - `koi_duration` — Transit Duration (hrs)  
+    - `koi_depth` — Transit Depth (ppm)  
+    - `koi_ror` — Planet-Star Radius Ratio  
+    - `koi_teq` — Equilibrium Temperature (K)  
+    - `koi_insol` — Insolation Flux  
+    - `koi_steff` — Stellar Effective Temperature (K)  
+    - `koi_srad` — Stellar Radius (Solar Radii)  
+    - `koi_model_snr` — Model Signal-to-Noise Ratio  
+
+    **Tips:**  
+    - Keep column names **exactly** as listed above — no spaces or capitals.  
+    - Save your file as `.csv` (UTF-8 encoded).  
+    - Each row should represent **one celestial object** (KOI entry).  
+    """)
+
     uploaded_file = st.file_uploader("Upload CSV with same features as training data", type=["csv"])
 
     if uploaded_file is not None:
@@ -209,6 +230,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
