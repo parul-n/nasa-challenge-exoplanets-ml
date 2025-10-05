@@ -190,57 +190,66 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         else:
             st.warning("ROC-AUC plot unavailable: either the model does not support probability predictions or the test set has only one class.")
 
-    # --- Feature Importance & SHAP ---
     with st.expander("Feature Importance & SHAP Explanations"):
 
     # Feature Importance Bar Chart
-        st.subheader("Feature Importance")
-        importances = model.feature_importances_
-        importance_df = pd.DataFrame({
-            'Feature': readable_features,
-            'Importance': importances
-        }).sort_values(by='Importance', ascending=False)
-        st.dataframe(importance_df)
+    st.subheader("Feature Importance")
+    importances = model.feature_importances_
+    importance_df = pd.DataFrame({
+        'Feature': readable_features,
+        'Importance': importances
+    }).sort_values(by='Importance', ascending=False)
+    st.dataframe(importance_df)
 
-        fig3, ax3 = plt.subplots(figsize=(7,5))
-        sns.barplot(x='Importance', y='Feature', data=importance_df, ax=ax3, palette="viridis")
-        ax3.set_title("Feature Importance")
-        st.pyplot(fig3, clear_figure=True)
+    fig3, ax3 = plt.subplots(figsize=(7,5))
+    sns.barplot(x='Importance', y='Feature', data=importance_df, ax=ax3, palette="viridis")
+    ax3.set_title("Feature Importance")
+    st.pyplot(fig3, clear_figure=True)
 
-        # --- SHAP Global Summary Plot ---
-        st.subheader("SHAP Summary Plot (Global Feature Impact)")
+    # SHAP Global Summary Plot
+    st.subheader("SHAP Summary Plot (Global Feature Impact)")
+    import shap
 
-        import shap
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_test_scaled)
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_test_scaled)
 
-        # Create summary plot with matplotlib backend
-        plt.figure(figsize=(7,5))
-        shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features,
-                      plot_type="bar", show=False, matplotlib=True)
-        fig4 = plt.gcf()
-        st.pyplot(fig4)  # no clear_figure needed
-        plt.close(fig4)   # close after rendering
+    # For binary classification, pick the positive class (class 1)
+    if isinstance(shap_values, list):
+        shap_values_to_use = shap_values[1]
+    else:
+        shap_values_to_use = shap_values
 
-        # --- SHAP Force Plot for first test sample ---
-        st.subheader("SHAP Force Plot for First Test Sample")
-        st.markdown("Shows how each feature contributed to the model's prediction for the first test entry.")
+    plt.figure(figsize=(7,5))
+    shap.summary_plot(
+        shap_values_to_use,
+        X_test_scaled,
+        feature_names=readable_features,
+        plot_type="bar",
+        show=False,
+        matplotlib=True
+    )
+    fig_shap = plt.gcf()
+    st.pyplot(fig_shap)
+    plt.close(fig_shap)
 
-        plt.figure(figsize=(7,3))
-        shap.force_plot(
-            explainer.expected_value,
-            shap_values[0],
-              X_test_scaled[0],
-            feature_names=readable_features,
-             matplotlib=True
-        )
-        fig5 = plt.gcf()
-        st.pyplot(fig5)
-        plt.close(fig5)
+    # Optional: SHAP Force Plot for first test sample
+    st.subheader("SHAP Force Plot for First Test Sample")
+    plt.figure(figsize=(7,3))
+    shap.force_plot(
+        explainer.expected_value[1],
+        shap_values[1][0],
+        X_test_scaled[0],
+        feature_names=readable_features,
+        matplotlib=True
+    )
+    fig_force = plt.gcf()
+    st.pyplot(fig_force)
+    plt.close(fig_force)
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
