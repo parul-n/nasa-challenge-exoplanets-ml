@@ -7,7 +7,7 @@ import gdown
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, roc_auc_score
 
 
 ##PAGE SETUP
@@ -171,5 +171,6 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
