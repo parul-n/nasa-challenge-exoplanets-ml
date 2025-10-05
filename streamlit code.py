@@ -192,7 +192,6 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 
     with st.expander("Feature Importance & SHAP Explanations"):
 
-    # Feature Importance Bar Chart
         st.subheader("Feature Importance")
         importances = model.feature_importances_
         importance_df = pd.DataFrame({
@@ -206,14 +205,20 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         ax3.set_title("Feature Importance")
         st.pyplot(fig3, clear_figure=True)
 
-        # SHAP Global Summary Plot
+        # --- SHAP Summary ---
         st.subheader("SHAP Summary Plot (Global Feature Impact)")
         import shap
 
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_test_scaled)
+        sample_size = 200  # Reduce this number for faster performance
+        X_sample = X_test_scaled[:sample_size]
 
-        # For binary classification, pick the positive class (class 1)
+        @st.cache_resource
+        def compute_shap_values(model, X):
+            explainer = shap.TreeExplainer(model)
+            return explainer.shap_values(X)
+
+        shap_values = compute_shap_values(model, X_sample)
+
         if isinstance(shap_values, list):
             shap_values_to_use = shap_values[1]
         else:
@@ -222,33 +227,20 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         plt.figure(figsize=(7,5))
         shap.summary_plot(
             shap_values_to_use,
-            X_test_scaled,
+            X_sample,
             feature_names=readable_features,
             plot_type="bar",
             show=False,
             matplotlib=True
         )
-        fig_shap = plt.gcf()
-        st.pyplot(fig_shap)
-        plt.close(fig_shap)
+        st.pyplot(plt.gcf())
+        plt.close()
 
-    # Optional: SHAP Force Plot for first test sample
-        st.subheader("SHAP Force Plot for First Test Sample")
-        plt.figure(figsize=(7,3))
-        shap.force_plot(
-            explainer.expected_value[1],
-            shap_values[1][0],
-            X_test_scaled[0],
-            feature_names=readable_features,
-            matplotlib=True
-        )
-        fig_force = plt.gcf()
-        st.pyplot(fig_force)
-        plt.close(fig_force)
 
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
