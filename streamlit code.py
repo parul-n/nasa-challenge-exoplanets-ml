@@ -210,11 +210,14 @@ if st.checkbox("Show Model Metrics (using real test data)"):
         # SHAP Summary Plot (Global)
         st.subheader("SHAP Summary Plot (Global Feature Impact)")
         import shap
+
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_test_scaled)
 
-        fig4 = shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features, show=False)
+        shap.summary_plot(shap_values, X_test_scaled, feature_names=readable_features, plot_type="bar", show=False, matplotlib=True)
+        fig4 = plt.gcf()  # get the current matplotlib figure
         st.pyplot(fig4, clear_figure=True)
+
 
         # SHAP Force Plot (First Sample)
         st.subheader("SHAP Force Plot for First Test Sample")
@@ -232,6 +235,7 @@ if st.checkbox("Show Model Metrics (using real test data)"):
 # #FOOTER
 st.markdown("---")
 st.markdown("Developed for **NASA Space Apps Challenge 2025** 🌌 | Team: nasa spons0rers")
+
 
 
 
